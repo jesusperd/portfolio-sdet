@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jesús Reyes | SDET Architecture Portfolio</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;       /* Deep Black */
+            --card-bg: #141414;       /* Very Dark Gray */
+            --primary: #FFD700;       /* Cyber Yellow */
+            --primary-hover: #ffea00;
+            --text-main: #f3f4f6;     /* Off-white */
+            --text-dim: #9ca3af;      /* Light Gray */
+            --border-color: #333333;  /* Subtle dark border */
+            --shadow: 0 10px 30px rgba(0,0,0,0.8);
+            --glow: 0 0 20px rgba(255, 215, 0, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 35vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #1a1a1a 0%, var(--bg-dark) 100%);
+            border-bottom: 2px solid var(--border-color);
+            text-align: center;
+            position: relative;
+        }
+        
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: var(--glow);
+        }
+
+        /* Grid Layout */
+        .container { max-width: 1200px; margin: -50px auto 50px; padding: 0 20px; position: relative; z-index: 10; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--border-color); transition: background 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 15px 35px rgba(255, 215, 0, 0.1);
+        }
+
+        .card:hover::before { background: var(--primary); }
+
+        .click-hint {
+            margin-top: 15px; font-size: 0.8rem; color: var(--primary);
+            display: flex; align-items: center; gap: 5px; opacity: 0;
+            transition: opacity 0.3s ease; font-weight: bold;
+        }
+        .card:hover .click-hint { opacity: 1; }
+
+        /* Tags */
+        .tag { 
+            display: inline-block; 
+            background: transparent; 
+            color: var(--text-dim); 
+            padding: 4px 12px; 
+            border-radius: 4px; 
+            border: 1px solid var(--border-color);
+            font-size: 0.75rem; 
+            font-weight: 600; 
+            letter-spacing: 1px;
+            margin-bottom: 15px; 
+            width: fit-content; 
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover .tag {
+            color: var(--bg-dark);
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .card h2 { color: var(--text-main); margin-bottom: 10px; font-size: 1.4rem; font-weight: 700; }
+        .card p.preview { color: var(--text-dim); font-size: 0.95rem; flex-grow: 1; }
+
+        /* Code Snippets */
+        .code-preview {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            background: #050505;
+            color: var(--text-main);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin-top: 15px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card:hover .code-preview { border-color: rgba(255, 215, 0, 0.3); }
+        .code-preview span.keyword { color: var(--primary); }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; visibility: hidden;
+            transition: all 0.3s ease; backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 90%; max-width: 650px; max-height: 85vh;
+            border-radius: 12px; padding: 40px;
+            border: 1px solid var(--primary);
+            box-shadow: var(--glow);
+            position: relative; transform: translateY(20px);
+            transition: transform 0.3s ease; overflow-y: auto;
+        }
+
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+
+        .close-modal {
+            position: absolute; top: 20px; right: 25px;
+            font-size: 2rem; color: var(--text-dim);
+            cursor: pointer; background: none; border: none;
+            transition: color 0.2s ease;
+        }
+        
+        .close-modal:hover { color: var(--primary); }
+
+        .modal-header h2 { color: var(--primary); font-size: 2rem; margin: 10px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;}
+        .modal-body h3 { color: var(--text-main); margin: 25px 0 10px; font-size: 1.2rem;}
+        .modal-body p { color: var(--text-dim); margin-bottom: 15px; }
+        .modal-body ul { list-style: none; padding-left: 0; }
+        .modal-body li { color: var(--text-dim); margin-bottom: 12px; display: flex; align-items: flex-start; }
+        .modal-body li::before { content: '▹'; color: var(--primary); margin-right: 10px; font-size: 1.2rem; font-weight: bold; line-height: 1; }
+        .modal-body b { color: var(--text-main); }
+        
+        .code-full {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            background: #050505;
+            color: var(--text-main);
+            padding: 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary);
+            white-space: pre-wrap;
+        }
+
+        /* Custom Scrollbar for Modal */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        footer { text-align: center; padding: 40px; color: var(--text-dim); font-size: 0.8rem; letter-spacing: 1px; }
+        footer span { color: #ffffff; }
+    </style>
+</head>
+<body>
+
+    <section class="hero">
+        <h2 style="color: #ffffff; font-size: 2.5rem; margin-bottom: 5px; font-weight: 800; letter-spacing: 1px;">
+            Jesús Reyes
+        </h2>
+        <p style="color: var(--primary); font-size: 0.85rem; letter-spacing: 2px; line-height: 1.8; max-width: 90%;">
+            SR SDET Architect | Systems Analyst | Web & Mobile Automation Engineer | AI Specialist
+        </p>
+        
+        <h1 style="margin-top: 30px; font-size: 2rem; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            SDET Architecture & Core Practices
+        </h1>
+    </section>
+
+    <div class="container">
+        <div class="grid">
+            
+            <div class="card" onclick="openModal('m-arq')">
+                <div class="tag">Architecture</div>
+                <h2>Multi-Environment Core</h2>
+                <p class="preview">Agnostic infrastructure that dynamically resolves URLs and databases at runtime.</p>
+                <div class="code-preview"><span class="keyword">if</span> env == "STG": setup_stg_context()</div>
+                <div class="click-hint">View Technical Details ➝</div>
+            </div>
+
+            <div class="card" onclick="openModal('m-human')">
+                <div class="tag">Scalable Design</div>
+                <h2>BDD & Data-Driven</h2>
+                <p class="preview">Business-readable tests ensuring high reusability and seamless scenario creation.</p>
+                <div class="code-preview"><span class="keyword">Given</span> User is authenticated</div>
+                <div class="click-hint">View Technical Details ➝</div>
+            </div>
+
+            <div class="card" onclick="openModal('m-layers')">
+                <div class="tag">Clean Code</div>
+                <h2>3-Tier Pattern / POM</h2>
+                <p class="preview">Strict decoupling of Locators, Business Keywords, and Execution layers.</p>
+                <div class="code-preview">Page Object Model Implementation</div>
+                <div class="click-hint">View Technical Details ➝</div>
+            </div>
+
+            <div class="card" onclick="openModal('m-sec')">
+                <div class="tag">Security</div>
+                <h2>Secret Management</h2>
+                <p class="preview">Protection of credentials and sensitive variables outside the source code.</p>
+                <div class="code-preview">os.getenv(<span class="keyword">"DB_PASSWORD"</span>)</div>
+                <div class="click-hint">View Technical Details ➝</div>
+            </div>
+
+            <div class="card" onclick="openModal('m-mobile')">
+                <div class="tag">Omnichannel</div>
+                <h2>Mobile & Web Sync</h2>
+                <p class="preview">Combined strategies using Appium and Web Drivers for true End-to-End flows.</p>
+                <div class="code-preview">driver = webdriver.Remote(...)</div>
+                <div class="click-hint">View Technical Details ➝</div>
+            </div>
+
+            <div class="card" onclick="openModal('m-evi')">
+                <div class="tag">Reporting</div>
+                <h2>Clean Traceability</h2>
+                <p class="preview">Smart log management and automatic captures only on failure to optimize storage.</p>
+                <div class="code-preview">on_failure: capture_screenshot()</div>
+                <div class="click-hint">View Technical Details ➝</div>
+            </div>
+
+            <div class="card" onclick="openModal('m-db')">
+                <div class="tag">Backend</div>
+                <h2>DB & API Validation</h2>
+                <p class="preview">Data integrity checks via direct queries (SQL/NoSQL) and endpoint validation.</p>
+                <div class="code-preview"><span class="keyword">assert</span> response.status_code == 200</div>
+                <div class="click-hint">View Technical Details ➝</div>
+            </div>
+
+            <div class="card" onclick="openModal('m-cmd')">
+                <div class="tag">Execution</div>
+                <h2>Parameterized CLI</h2>
+                <p class="preview">Granular CLI execution to isolate suites, tags, and headless modes effortlessly.</p>
+                <div class="code-preview">pytest -m <span class="keyword">"regression"</span> --headless</div>
+                <div class="click-hint">View Technical Details ➝</div>
+            </div>
+
+            <div class="card" onclick="openModal('m-cicd')">
+                <div class="tag">CI/CD</div>
+                <h2>Unattended Pipelines</h2>
+                <p class="preview">Native integration into cloud workflows (Azure DevOps / GitHub Actions).</p>
+                <div class="code-preview">trigger: branches: include: main</div>
+                <div class="click-hint">View Technical Details ➝</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="m-human" class="modal-overlay" onclick="closeOnOverlay(event, 'm-human')">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('m-human')">×</button>
+            <div class="modal-header">
+                <h2>BDD & Data-Driven Design</h2>
+            </div>
+            <div class="modal-body">
+                <p>Automation must be accessible. I design frameworks where Functional Analysts can structure scenarios without deep programming knowledge.</p>
+                <h3>How is this achieved?</h3>
+                <ul>
+                    <li><b>Logic Abstraction:</b> Complex technical actions are reduced to readable <i>Keywords</i> or functions.</li>
+                    <li><b>Data Injection (Data-Driven):</b> Separation of test data (JSON/CSV) from the script, allowing massive test iterations without duplicating code.</li>
+                    <li><b>High ROI:</b> Facilitates long-term maintenance and speeds up the coverage of new business flows.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="m-arq" class="modal-overlay" onclick="closeOnOverlay(event, 'm-arq')">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('m-arq')">×</button>
+            <div class="modal-header">
+                <h2>Multi-Environment Core</h2>
+            </div>
+            <div class="modal-body">
+                <p>Structures built to dynamically adapt to the project's ecosystem through execution flags.</p>
+                <ul>
+                    <li>Automatic base URL resolution mapped by environment (DEV, QA, STG, PROD).</li>
+                    <li>Configuration switches to inject the correct databases corresponding to the environment.</li>
+                    <li>Native safeguards to prevent accidental impacts on production databases.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="m-layers" class="modal-overlay" onclick="closeOnOverlay(event, 'm-layers')">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('m-layers')">×</button>
+            <div class="modal-header">
+                <h2>3-Tier Pattern / POM</h2>
+            </div>
+            <div class="modal-body">
+                <p>Rigorous application of the Page Object Model and separation of concerns to withstand UI changes over time.</p>
+                <ul>
+                    <li><b>Mapping Layer:</b> Isolated Locators (CSS preferred over XPath for speed). If the DOM changes, only one file is edited.</li>
+                    <li><b>Business Layer:</b> Classes/Keywords representing user actions and flows.</li>
+                    <li><b>Test Layer:</b> Clean executable files containing assertions and business validation logic.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="m-sec" class="modal-overlay" onclick="closeOnOverlay(event, 'm-sec')">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('m-sec')">×</button>
+            <div class="modal-header">
+                <h2>Secret Management</h2>
+            </div>
+            <div class="modal-body">
+                <p>Implementation of Enterprise security practices (Basic DevSecOps).</p>
+                <ul>
+                    <li>Strict use of environment variables and <code>.env</code> files (excluded via gitignore).</li>
+                    <li>Native support for credential injection via Pipeline secrets (Azure Key Vault / GitHub Secrets).</li>
+                    <li>Zero hardcoded tokens or passwords in the repository.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="m-mobile" class="modal-overlay" onclick="closeOnOverlay(event, 'm-mobile')">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('m-mobile')">×</button>
+            <div class="modal-header">
+                <h2>Mobile & Web Automation</h2>
+            </div>
+            <div class="modal-body">
+                <p>Solid experience unifying quality across multiple devices and platforms.</p>
+                <ul>
+                    <li>Native and Hybrid automation using Appium (Android Studio / Xcode environments).</li>
+                    <li>End-to-End synchronization where a Web action triggers a Mobile App validation.</li>
+                    <li>Dynamic Desired Capabilities management for seamless integration with device farms.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="m-evi" class="modal-overlay" onclick="closeOnOverlay(event, 'm-evi')">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('m-evi')">×</button>
+            <div class="modal-header">
+                <h2>Clean Traceability</h2>
+            </div>
+            <div class="modal-body">
+                <p>Frameworks configured to provide actionable metrics without saturating CI/CD storage agents.</p>
+                <ul>
+                    <li>Screenshots and DOM dumps captured <i>exclusively</i> when a test fails via Teardown Hooks.</li>
+                    <li>Smart overwriting to prevent gigabytes of useless historic images.</li>
+                    <li>Integration with advanced HTML reporting tools (Allure, ReportPortal) for executive dashboards.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="m-db" class="modal-overlay" onclick="closeOnOverlay(event, 'm-db')">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('m-db')">×</button>
+            <div class="modal-header">
+                <h2>Backend Integrity (DB & API)</h2>
+            </div>
+            <div class="modal-body">
+                <p>UI tests are slow and brittle; I prioritize validation at lower layers following the Test Pyramid.</p>
+                <ul>
+                    <li>Test data generation by directly injecting records via SQL (DBeaver/MySQL) or NoSQL (MongoDB).</li>
+                    <li>Validation of Status Codes and JSON schemas in microservices.</li>
+                    <li>UI bypass strategies (e.g., fetching OTPs directly from the database) to speed up regression tests.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="m-cmd" class="modal-overlay" onclick="closeOnOverlay(event, 'm-cmd')">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('m-cmd')">×</button>
+            <div class="modal-header">
+                <h2>Parameterized CLI Execution</h2>
+            </div>
+            <div class="modal-body">
+                <p>Robust command-line interfaces to facilitate usage by DevOps and QA teams.</p>
+                <div class="code-full">python -m pytest tests/ \
+  --env=STG \
+  --browser=chrome \
+  --headless \
+  --html=report.html</div>
+                <p>Enables isolating executions by tags (Smoke, Sanity, Regression) effortlessly.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="m-cicd" class="modal-overlay" onclick="closeOnOverlay(event, 'm-cicd')">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('m-cicd')">×</button>
+            <div class="modal-header">
+                <h2>Continuous Testing Integration</h2>
+            </div>
+            <div class="modal-body">
+                <p>Automation is incomplete until it lives inside the pipeline.</p>
+                <ul>
+                    <li><b>Quality Gates:</b> Blocking Pull Requests if critical tests fail.</li>
+                    <li>Scheduled nightly executions for deep unattended regressions.</li>
+                    <li>Solid experience integrating test suites into Azure DevOps and GitHub Actions environments.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 <span>Jesús Reyes</span> - SR SDET Architect
+    </footer>
+
+    <script>
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        function closeOnOverlay(e, id) {
+            if (e.target.id === id) closeModal(id);
+        }
+        
+        // Add Esc key support to close modals
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                const activeModal = document.querySelector('.modal-overlay.active');
+                if (activeModal) {
+                    activeModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
